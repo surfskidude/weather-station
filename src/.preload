@@ -1,0 +1,67 @@
+-- Wire up a BME280 via I2C:
+-- https://learn.sparkfun.com/tutorials/sparkfun-bme280-breakout-hookup-guide/all
+--  2: Create an app using Xedge and add this file to the app
+--  3: Set your I2C GPIO settings below
+--  4: Restart the Lua app
+local SDA_GPIO <const> = 2
+local SCL_GPIO <const> = 1
+local BME280_I2C_ADDR <const> = 0x76 -- Default BME280 I2C address
+
+local tsdb=io:dofile".lua/tsdb.lua" -- Time series database
+app.tsdb=tsdb -- Now LSP pages can access it
+local bme -- set in saveMetrics
+
+-- Timer function saving weather data to time series database
+local function saveMetrics()
+   local err
+   bme,err = require"bme280".create(0,BME280_I2C_ADDR,SDA_GPIO,SCL_GPIO,settings)
+   if not bme then
+      trace("Cannot create bme280 instance:", err)
+      return
+   end
+   local toint=math.tointeger
+   local temperature, humidity, pressure = 1, 1, 1
+   while true do -- forever, but thread stops when timer is stopped
+      local t, h, p = bme:read() -- Read values from sensor
+      if t then
+         -- Convert to integer and multiply by 10 to keep one fraction.
+         t, h, p = toint(t*10), toint(h*10), toint(p)
+         -- Only save if there is a reasonable amount of change (c).
+         local tc, hc, pc =
+            math.abs(temperature-t) > 1,math.abs(humidity-h) > 4, math.abs(pressure-p) > 30
+         if tc or hc or pc then -- if [t or h or p] changed
+            temperature, humidity, pressure = t, h, p -- Update to new values
+            -- Save the metrics to the time series storage
+            if tc then tsdb.saveData('t', temperature/10) end
+            if hc then tsdb.saveData('h', humidity/10) end
+            if pc then tsdb.saveData('p', pressure/100) end
+            -- trace(tc,hc,pc) -- testing
+            -- Also send data as email
+            xedge.elog({ts=true}, "Temp=%.1f, Humidity=%.1f, Pressure=%.1f", t/10, h/10, p/100)
+         else
+            --trace("No change")
+         end
+      else
+         -- h is now error code
+         xedge.elog({flush=true,ts=true,subject="Error"},"BME280 reading failed: %s", tostring(h))
+         bme:close()
+         bme, err = require"bme280".create(0, BME280I2CADDR, SDAGPIO, SCLGPIO, settings)
+         if not bme then
+            xedge.elog({flush=true,ts=true,subject="Error"},"Cannot create bme280 object: %s", tostring(err))
+            return
+         end -- give up
+      end
+      coroutine.yield(true) -- Wait for next timer tick
+   end
+end
+
+
+local metricsTimer=ba.timer(saveMetrics)
+metricsTimer:set(2000) -- Every two seconds
+
+-- Function runs if app is closed using Xedge
+function onunload()
+   metricsTimer:cancel()
+   if bme then bme:close() end
+end 
+

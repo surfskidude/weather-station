@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Range Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label, input {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form id="dateForm">
+        <label for="fromDate">From Date:</label>
+        <input type="date" id="fromDate" name="fromDate">
+        <label for="toDate">To Date:</label>
+        <input type="date" id="toDate" name="toDate">
+        
+        <input type="submit" value="Submit">
+    </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Set the default dates
+        const fromDate = new Date();
+        const toDate = new Date();
+        fromDate.setDate(fromDate.getDate() - 1);
+        toDate.setDate(toDate.getDate() + 1);
+        document.getElementById('fromDate').valueAsDate = fromDate;
+        document.getElementById('toDate').valueAsDate = toDate;
+    });
+
+    document.getElementById('dateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Get the local date values
+        let fromDate = new Date(document.getElementById('fromDate').valueAsDate);
+        let toDate = new Date(document.getElementById('toDate').valueAsDate);
+        const offset = new Date().getTimezoneOffset();
+        fromDate=new Date(fromDate.getTime() + offset*60000);
+        toDate=new Date(toDate.getTime() + offset*60000);
+
+        // URL encode the data
+        const data = new URLSearchParams();
+        data.append('from', fromDate.toISOString());
+        data.append('to', toDate.toISOString());
+        // Send data to the server
+        fetch('getwd.lsp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: data
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            // Handle the JSON response here
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+</script>
+
+
+</body>
+</html>
