@@ -7,9 +7,71 @@ local SDA_GPIO <const> = 2
 local SCL_GPIO <const> = 1
 local BME280_I2C_ADDR <const> = 0x76 -- Default BME280 I2C address
 
-local tsdb=io:dofile".lua/tsdb.lua" -- Time series database
-app.tsdb=tsdb -- Now LSP pages can access it
-local bme -- set in saveMetrics
+-- SMQ broker used when publishing data to the SPA (web app)
+-- https://realtimelogic.com/ba/doc/?url=SMQ.html
+local smq=require"smq.hub".create()
+
+-- Used by smq.lsp
+function smqConnect(request)
+   smq:connect(request) -- Upgrade HTTP(S) request to SMQ connection
+end
+
+ -- A table with the keys 't','h','p', where values are numbers
+ -- The key/val combo is set in the 'publish' function below.
+local latestData={}
+app.latestData=latestData -- Can now be accessed by LSP pages
+
+local publish,close=(function()
+   local pubFunctions={}
+   local closeFunctions={}
+
+   if ba.openio"home" or ba.openio"sd" then -- 'home' when using Mako
+      local tsdb=io:dofile".lua/tsdb.lua" -- Time series database
+      app.tsdb=tsdb -- Now LSP pages can access it
+      table.insert(pubFunctions, function(...) tsdb.saveData(...) end)
+   else
+      trace"Warning: No SD card; the time series database will be disabled"
+   end
+
+   table.insert(pubFunctions, function(type,val)
+      local payload={type=type}
+      payload[type]=val
+      smq:publish(payload,"bme280")
+   end)
+
+   local cio=ba.openio"home" or ba.openio"disk"
+   local plugins,err=require"rwfile".json(cio, "WeatherStationConfig.json")
+   if plugins then
+      for name,cfg in pairs(plugins) do
+         if cfg.enabled then
+            trace("Loading plugin",name,cfg.filename)
+            local ok,start,publish,close=pcall(function() return io:dofile(cfg.filename) end)
+            if ok then
+               ok,err=pcall(function() start(cfg) end)
+               if ok then
+                  table.insert(pubFunctions,publish)
+                  table.insert(closeFunctions,close)
+               else
+                  trace("\tStarting plugin failed:",err)
+               end
+            else
+               trace("\tLoading failed:",start)
+            end
+         end
+      end
+   else
+      trace("Warning: cannot open",cio:realpath"WeatherStationConfig.json",err)
+   end
+   return function(type,val) -- Publish
+             latestData[type]=val
+      for _,func in ipairs(pubFunctions) do func(type,val) end
+   end,
+   function() -- Close
+      for _,func in ipairs(closeFunctions) do func() end
+   end
+end)()
+
+local bme -- bme280 instance; set in saveMetrics
 
 -- Timer function saving weather data to time series database
 local function saveMetrics()
@@ -32,9 +94,9 @@ local function saveMetrics()
          if tc or hc or pc then -- if [t or h or p] changed
             temperature, humidity, pressure = t, h, p -- Update to new values
             -- Save the metrics to the time series storage
-            if tc then tsdb.saveData('t', temperature/10) end
-            if hc then tsdb.saveData('h', humidity/10) end
-            if pc then tsdb.saveData('p', pressure/100) end
+            if tc then publish('t', temperature/10) end
+            if hc then publish('h', humidity/10) end
+            if pc then publish('p', pressure/100) end
             -- trace(tc,hc,pc) -- testing
             -- Also send data as email
             xedge.elog({ts=true}, "Temp=%.1f, Humidity=%.1f, Pressure=%.1f", t/10, h/10, p/100)
@@ -63,5 +125,7 @@ metricsTimer:set(2000) -- Every two seconds
 function onunload()
    metricsTimer:cancel()
    if bme then bme:close() end
+   close() -- all plugins
+   smq:shutdown"Closing app"
 end 
 
