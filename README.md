@@ -47,9 +47,9 @@ The ESP32 powered Weather Station App collects and manages weather data using a 
 2. Xedge32 configuration: Make sure Xedge32 operates in [Station Mode](https://realtimelogic.com/ba/ESP32/source/AccessPointMode.html#switching-to-station-mode).
 3. SD Card configuration: See the first part of the tutorial [ESP32 WebDAV Server](https://realtimelogic.com/articles/ESP32-WebDAV-Server) for how to enable the SD card; the application works without an SD card, but the Time Series Database will be disabled.
 2. Upload the Weather Station App: Upload the code in the src directory to a new directory, such as 'WeatherStation', using the WebDAV plugin. See [this video](https://youtu.be/i5ubScGwUOc?si=zUw-Q0NQ6UYG4rUe) if you are new to WebDAV.
-   1. When Xedge32 is switched on and operates in Station Mode, mount the following directory as a WebDAV network drive: http://xedge32.local/rtl/apps/disk/
+   1. When Xedge32 is switched on and operating in Station Mode, mount the following directory as a WebDAV network drive: http://xedge32.local/rtl/apps/disk/
    3. In the mounted drive, create the directory 'WeatherStation'.
-   2. Using the mounted WebDAV network drive, copy all of the source code in the 'src/*' directory to http://xedge32.local/rtl/apps/disk/WeatherStation/ directory, including subdirectories. Do not include the 'src' directory; in other words, the .preload file should be located at http://xedge32.local/rtl/apps/disk/WeatherStation/ after completing the upload.
+   2. Using the mounted WebDAV network drive, copy all of the source code in the 'src/*' directory, including subdirectories, to the http://xedge32.local/rtl/apps/disk/WeatherStation/ directory. Do not include the 'src' directory; in other words, the .preload file should be located at http://xedge32.local/rtl/apps/disk/WeatherStation/.preload after completing the upload.
 3. Copy the configuration file WeatherStationConfig.json to http://xedge32.local/rtl/apps/disk/.
 
 4. In the Xedge32 IDE (http://xedge32.local/rtl/), expand 'disk' in the left pane, right-click the 'WeatherStation' directory, and select 'New App'. In the 'Application Configuration' dialog:
