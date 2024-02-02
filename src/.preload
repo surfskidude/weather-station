@@ -1,8 +1,4 @@
--- Wire up a BME280 via I2C:
--- https://learn.sparkfun.com/tutorials/sparkfun-bme280-breakout-hookup-guide/all
---  2: Create an app using Xedge and add this file to the app
---  3: Set your I2C GPIO settings below
---  4: Restart the Lua app
+-- The GPIO settings
 local SDA_GPIO <const> = 2
 local SCL_GPIO <const> = 1
 local BME280_I2C_ADDR <const> = 0x76 -- Default BME280 I2C address
@@ -40,14 +36,14 @@ local publish,close=(function()
    end)
 
    local cio=ba.openio"home" or ba.openio"disk"
-   local plugins,err=require"rwfile".json(cio, "WeatherStationConfig.json")
-   if plugins then
-      for name,cfg in pairs(plugins) do
-         if cfg.enabled then
-            trace("Loading plugin",name,cfg.filename)
-            local ok,start,publish,close=pcall(function() return io:dofile(cfg.filename) end)
+   local config,err=require"rwfile".json(cio, "WeatherStationConfig.json")
+   if config then
+      for name,plugin in pairs(config) do
+         if "table" == type(plugin) and plugin.enabled then
+            trace("Loading plugin",name,plugin.filename)
+            local ok,start,publish,close=pcall(function() return io:dofile(plugin.filename) end)
             if ok then
-               ok,err=pcall(function() start(cfg) end)
+               ok,err=pcall(function() start(plugin) end)
                if ok then
                   table.insert(pubFunctions,publish)
                   table.insert(closeFunctions,close)
@@ -98,7 +94,7 @@ local function saveMetrics()
             if hc then publish('h', humidity/10) end
             if pc then publish('p', pressure/100) end
             -- trace(tc,hc,pc) -- testing
-            -- Also send data as email
+            -- Also send data as an email, if enabled
             xedge.elog({ts=true}, "Temp=%.1f, Humidity=%.1f, Pressure=%.1f", t/10, h/10, p/100)
          else
             --trace("No change")

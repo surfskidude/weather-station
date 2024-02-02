@@ -1,0 +1,23 @@
+/*
+  This file is parsed by ba.json.decode(), which accepts nonstandard C and C++ comments.
+  A recommendation is to use a JSON verifier after editing this file, such as
+  https://jsonformatter.org/
+  However, remove the comments before verifying the file.
+*/   
+{
+    "Home Assistant" :
+    {
+        "enabled": false, // Set to true to enable this option.
+        "filename" : ".lua/HomeAssistant.lua",
+        "broker":"broker.emqx.io", //Change to your HA broker's IP address
+        "topic":"office/sensor1", // Must match Home Assistant configuration
+        // Internal type to payload mapping
+        "t" : "temperature", "h" : "humidity", "p" : "pressure",
+        "options" : { // MQTT options
+            "username":"xedge32",
+            "password ": "qwerty",
+            // Additional options: https://realtimelogic.com/ba/doc/?url=MQTT.html#create
+        }
+    }
+}
+
