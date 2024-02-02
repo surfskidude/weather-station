@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Date Range Selector</title>
+    <script src='/rtl/smq.js'></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,9 +15,10 @@
             margin: 0;
             background-color: #f0f0f0;
         }
-        form {
+        form,div {
             background-color: #fff;
             padding: 20px;
+            margin: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
@@ -44,6 +46,12 @@
     </style>
 </head>
 <body>
+    <div style="min-width:200px">
+      <ol>
+        <li>Temperature: <span id="t"></span></li>
+        <li>Humidity: <span id="h"></span></li>
+        <li>Pressure: <span id="p"></span></li>
+    </div>
     <form id="dateForm">
         <label for="fromDate">From Date:</label>
         <input type="date" id="fromDate" name="fromDate">
@@ -54,7 +62,14 @@
     </form>
 
 <script>
+
+    let smq = SMQ.Client(SMQ.wsURL("smq.lsp"));
+
     document.addEventListener("DOMContentLoaded", function() {
+        smq.subscribe("bme280", {datatype:"json",onmsg:function(data) {
+            document.getElementById(data.type).innerHTML=data[data.type];
+        }});
+
         // Set the default dates
         const fromDate = new Date();
         const toDate = new Date();
@@ -62,6 +77,29 @@
         toDate.setDate(toDate.getDate() + 1);
         document.getElementById('fromDate').valueAsDate = fromDate;
         document.getElementById('toDate').valueAsDate = toDate;
+        
+        // URL encode the data
+        const data = new URLSearchParams();
+        data.append('command','latest')
+        // Send data to the server
+        fetch('restapi.lsp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: data
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("t").innerHTML=data.t;
+            document.getElementById("h").innerHTML=data.h;
+            document.getElementById("p").innerHTML=data.p;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+        
+
     });
 
     document.getElementById('dateForm').addEventListener('submit', function(e) {
@@ -69,16 +107,18 @@
         // Get the local date values
         let fromDate = new Date(document.getElementById('fromDate').valueAsDate);
         let toDate = new Date(document.getElementById('toDate').valueAsDate);
+        // Convert to UTC
         const offset = new Date().getTimezoneOffset();
         fromDate=new Date(fromDate.getTime() + offset*60000);
         toDate=new Date(toDate.getTime() + offset*60000);
 
         // URL encode the data
         const data = new URLSearchParams();
+        data.append('command','search')
         data.append('from', fromDate.toISOString());
         data.append('to', toDate.toISOString());
         // Send data to the server
-        fetch('getwd.lsp', {
+        fetch('restapi.lsp', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
