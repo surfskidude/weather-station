@@ -22,12 +22,13 @@ The ESP32 powered Weather Station App collects and manages weather data using a 
 
 * `.preload`: Initializes the BME280 sensor and sets up the timer function for data collection.
 * `.lua/tsdb.lua`: Manages the time series database, including data saving, reading, and removing old files.
+* `.lua/HomeAssistant.lua`: Optional Home Assistant plugin.
 * `getwd.lsp` : REST service used by index.html
 * `index.html` : Example code for fetching TS data
 
 ## Parts Required
 
-1. ESP32 with PSRAM or the newer ESP32s3. The ESP32 should preferably include an SD card slot, such as [S3-N16R8](https://www.aliexpress.us/item/3256806014820995.html). Most CAM boards, such as [this one](https://www.aliexpress.us/item/3256804601970891.html), come with an SD card slot.
+1. ESP32 with PSRAM or the newer ESP32s3. The ESP32 should preferably include an SD card slot, such as the [S3-N16R8](https://www.aliexpress.us/item/3256806014820995.html). Most CAM boards, such as [this one](https://www.aliexpress.us/item/3256804601970891.html), come with an SD card slot.
 2. Upload the [Xedge32 firmware](https://realtimelogic.com/downloads/bas/ESP32/) onto the ESP32.
 2. [BME280 Module](https://www.aliexpress.us/item/3256805781410598.html).
 3. [Breadboard](https://www.aliexpress.us/item/3256805916002941.html).
@@ -45,7 +46,7 @@ The ESP32 powered Weather Station App collects and manages weather data using a 
  
 2. Xedge32 configuration: Make sure Xedge32 operates in [Station Mode](https://realtimelogic.com/ba/ESP32/source/AccessPointMode.html#switching-to-station-mode).
 3. SD Card configuration: See the first part of the tutorial [ESP32 WebDAV Server](https://realtimelogic.com/articles/ESP32-WebDAV-Server) for how to enable the SD card; the application works without an SD card, but the Time Series Database will be disabled.
-2. Upload the Weather Station App: Upload the code in the src directory to a new directory, such as 'WeatherStation', using the WebDAV plugin. See this video if you are new to WebDAV.
+2. Upload the Weather Station App: Upload the code in the src directory to a new directory, such as 'WeatherStation', using the WebDAV plugin. See [this video](https://youtu.be/i5ubScGwUOc?si=zUw-Q0NQ6UYG4rUe) if you are new to WebDAV.
    1. When Xedge32 is switched on and operates in Station Mode, mount the following directory as a WebDAV network drive: http://xedge32.local/rtl/apps/disk/
    3. In the mounted drive, create the directory 'WeatherStation'.
    2. Using the mounted WebDAV network drive, copy all of the source code in the 'src/*' directory to http://xedge32.local/rtl/apps/disk/WeatherStation/ directory, including subdirectories. Do not include the 'src' directory; in other words, the .preload file should be located at http://xedge32.local/rtl/apps/disk/WeatherStation/ after completing the upload.
