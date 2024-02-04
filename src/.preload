@@ -1,6 +1,7 @@
--- The GPIO settings
-local SDA_GPIO <const> = 2
-local SCL_GPIO <const> = 1
+-- The following two GPIO settings matches the wiring instructions in the README.md file.
+local SDA_GPIO <const> = 2 -- the GPIO number; if you connect SDA to GPIO8, then set this to 8
+local SCL_GPIO <const> = 1 -- the GPIO number; if you connect SCL to GPIO9, then set this to 9
+
 local BME280_I2C_ADDR <const> = 0x76 -- Default BME280 I2C address
 
 -- SMQ broker used when publishing data to the SPA (web app)

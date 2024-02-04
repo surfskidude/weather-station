@@ -20,7 +20,7 @@ The ESP32 powered Weather Station App collects and manages weather data using a 
 
 ## File Description
 
-* `.preload`: Initializes the BME280 sensor and sets up the timer function for data collection.
+* `.preload`: Initializes the BME280 sensor and sets up the timer function for data collection. See the [Xedge documentation: Xedge Applications](https://realtimelogic.com/ba/doc/?url=Xedge.html#apps) for .preload script details.
 * `.lua/tsdb.lua`: Manages the time series database, including data saving, reading, and removing old files.
 * `.lua/HomeAssistant.lua`: Optional Home Assistant plugin.
 * `getwd.lsp` : REST service used by index.html
@@ -87,6 +87,8 @@ mqtt:
       device_class: "pressure"
       unit_of_measurement: "Pa"
 ```
+
+**Important:** the above configuration file, including the MQTT topic, must match the settings in [WeatherStationConfig.json](WeatherStationConfig.json)
 
 2.  Restart Home Assistant or reload the configuration.
 
