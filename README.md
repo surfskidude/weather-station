@@ -29,7 +29,7 @@ The ESP32 powered Weather Station App collects and manages weather data using a 
 ## Parts Required
 
 1. ESP32 with PSRAM or the newer ESP32s3. The ESP32 should preferably include an SD card slot, such as the [S3-N16R8](https://www.aliexpress.us/item/3256806014820995.html). Most CAM boards, such as [this one](https://www.aliexpress.us/item/3256804601970891.html), come with an SD card slot.
-2. Upload the [Xedge32 firmware](https://realtimelogic.com/downloads/bas/ESP32/) onto the ESP32.
+2. Firmware: Upload the [Xedge32 firmware](https://realtimelogic.com/downloads/bas/ESP32/) onto the ESP32.
 2. [BME280 Module](https://www.aliexpress.us/item/3256805781410598.html).
 3. [Breadboard](https://www.aliexpress.us/item/3256805916002941.html).
 4. [Male to Male Jumper Wire](https://www.aliexpress.us/item/2251832664201754.html).
