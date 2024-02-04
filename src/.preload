@@ -1,4 +1,4 @@
--- The following two GPIO settings matches the wiring instructions in the README.md file.
+-- The following two GPIO settings match the wiring instructions in the README.md file.
 local SDA_GPIO <const> = 2 -- the GPIO number; if you connect SDA to GPIO8, then set this to 8
 local SCL_GPIO <const> = 1 -- the GPIO number; if you connect SCL to GPIO9, then set this to 9
 
